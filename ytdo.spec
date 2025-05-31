@@ -5,7 +5,7 @@ a = Analysis(
     ['ytdo.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('ffmpeg/ffmpeg.exe', 'ffmpeg')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

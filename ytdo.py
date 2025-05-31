@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[236]:
+# In[2]:
 
 
 import os
+import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox,ttk
 import yt_dlp
@@ -13,34 +14,53 @@ import glob
 import threading
 
 
-# In[184]:
+# In[ ]:
+
+
+def resource_path(relative_path):
+    try:
+        # PyInstaller打包時會用到
+        base_path = sys._MEIPASS
+    except Exception:
+        # 開發測試時用相對路徑
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+ffmpeg_path = resource_path("ffmpeg/ffmpeg.exe")
+
+
+# In[3]:
 
 
 # 常見語言代碼對照表
 lang_map = {
-    'en': '英文',
-    'ja': '日文',
-    'zh-Hant': '繁體中文',
-    'zh-Hans': '簡體中文',
-    'fr': '法文',
-    'de': '德文',
-    'es': '西班牙文',
-    'ko': '韓文',
-    'ru': '俄文',
-    'pt': '葡萄牙文',
-    'it': '義大利文',
-    'vi': '越南文',
-    'th': '泰文',
-    'hi': '印地文',
-    'id': '印尼文',
-    'tr': '土耳其文',
-    'pl': '波蘭文',
     'ar': '阿拉伯文',
     'bn': '孟加拉文',
+    'de': '德文',
+    'en': '英文',
+    'es': '西班牙文',
+    'fr': '法文',
+    'hi': '印地文',
+    'id': '印尼文',
+    'it': '義大利文',
+    'ja': '日文',
+    'ko': '韓文',
+    'mr': '馬拉地文',
+    'pa': '旁遮普文',
+    'pl': '波蘭文',
+    'pt': '葡萄牙文',
+    'ru': '俄文',
+    'ta': '坦米爾文',
+    'te': '泰盧固文',
+    'th': '泰文',
+    'tr': '土耳其文',
+    'vi': '越南文',
+    'zh': '中文'
 }
 
 
-# In[253]:
+# In[4]:
 
 
 display_to_code = {}
@@ -113,7 +133,7 @@ def check_subtitles():
             if not name:
                 # 如果沒找到，就用code前兩碼
                 prefix = code[:2]
-                name = lang_map.get(prefix, "未知語言")
+                name = lang_map.get(prefix, code)
             display = f"{name} ({code})"
             display_list.append(display)
             display_to_code[display] = code
@@ -171,16 +191,6 @@ def start_download():
     subtitle_lang = display_to_code.get(subtitle_lang_display, '')
     
     
-    if with_subtitle:
-        messagebox.showinfo(
-            "注意",
-            "※ 您已選擇「下載字幕」功能，建議使用支援內嵌字幕的播放器播放影片，例如：\n\n"
-            "- VLC 媒體播放器（推薦）\n"
-            "- MPV 播放器\n"
-            "- PotPlayer（支援部分格式）\n"
-            "- IINA（macOS）\n\n"
-            "部分播放器（如 Windows 內建影片播放器）無法顯示內嵌字幕。"
-        )
     if not save_path:
         messagebox.showwarning("注意", "請選擇下載儲存的資料夾。")
         window.after(0, lambda: start_button.config(state="normal"))
@@ -202,7 +212,19 @@ def start_download():
                                "若您輸入的是單一影片網址,或使用批次檔,請選擇『單一影片/批次檔』")
         window.after(0, lambda: start_button.config(state="normal"))
         return
+
         
+    if with_subtitle:
+        messagebox.showinfo(
+            "注意",
+            "※ 您已選擇「下載字幕」功能，建議使用支援內嵌字幕的播放器播放影片，例如：\n\n"
+            "- VLC 媒體播放器（推薦）\n"
+            "- MPV 播放器\n"
+            "- PotPlayer（支援部分格式）\n"
+            "- IINA（macOS）\n\n"
+            "部分播放器（如 Windows 內建影片播放器）無法顯示內嵌字幕。"
+        )
+    
     ydl_opts = {
         'outtmpl': os.path.join(save_path, '%(playlist_title)s/%(title)s.%(ext)s') if download_type == 'playlist' else os.path.join(save_path, '%(title)s.%(ext)s'),
         'quiet': False,
@@ -223,16 +245,26 @@ def start_download():
         ydl_opts['format'] = 'bestvideo+bestaudio/best'
 
     if with_subtitle and subtitle_lang:
+        short_lang = subtitle_lang[:2]
+        lang_title = f"{lang_map.get(short_lang, short_lang)}({short_lang})"
+    
         ydl_opts.update({
             'writesubtitles': True,
             'writeautomaticsub': False,
             'subtitleslangs': [subtitle_lang],
-            'embedsubtitles': True,  # 這樣會內嵌字幕軌到影片
+            'embedsubtitles': True,
             'merge_output_format': 'mkv',
             'postprocessors': [
                 {'key': 'FFmpegEmbedSubtitle'}
             ],
+            'postprocessor_args': [
+                '-metadata:s:s:0',
+                f'language={short_lang}',
+                '-metadata:s:s:0',
+                f'title={lang_title}'
+            ]
         })
+
 
     if remove_ads:
         messagebox.showinfo("注意",
@@ -248,6 +280,9 @@ def start_download():
             else:
                 ydl.download([url])
         messagebox.showinfo("完成", "下載完成！")
+        url_entry.delete(0, tk.END)
+        subtitle_lang_combo.set('')
+        subtitle_lang_combo['values'] = []
     except Exception as e:
         messagebox.showerror("錯誤", f"下載失敗：{e}")
     finally:
@@ -259,7 +294,7 @@ def start_download():
     window.after(0, lambda: start_button.config(state="normal"))
 
 
-# In[254]:
+# In[5]:
 
 
 # 建立視窗
