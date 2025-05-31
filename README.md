@@ -24,8 +24,8 @@
 
 ## 📁 批次檔說明（.txt）
 - 每行一個網址，單一影片網址或播放清單網址皆可，例如：
-"https://www.youtube.com/watch?v=xxxx" \n
-"https://www.youtube.com/playlist?list=yyyy"
+-"https://www.youtube.com/watch?v=xxxx" 
+-"https://www.youtube.com/playlist?list=yyyy"
 - - 注意：批次檔下載**不支援嵌入字幕與移除業配片段功能**
 
 ### 🎧 僅下載音訊
