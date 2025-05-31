@@ -1,0 +1,14 @@
+# 忽略 PyInstaller build 與 dist 資料夾
+build/
+dist/
+
+# 忽略 __pycache__ 及其他臨時檔
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+
+# 忽略系統檔案
+.DS_Store
+Thumbs.db
