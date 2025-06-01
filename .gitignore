@@ -8,7 +8,8 @@ __pycache__/
 *.pyo
 *.pyd
 *.swp
-
+*.ipynb
+*.py
 # 忽略系統檔案
 .DS_Store
 Thumbs.db
